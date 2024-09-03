@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply for OD</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+
+        .tab.active {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        .content {
+            display: none;
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .previous-requests table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .previous-requests table,
+        .previous-requests th,
+        .previous-requests td {
+            border: 1px solid #ddd;
+        }
+
+        .previous-requests th,
+        .previous-requests td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .previous-requests th {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Apply for On-Duty</h1>
+    </header>
+    <div class="tabs">
+        <div class="tab active" id="apply-tab">Apply for OD</div>
+        <div class="tab" id="previous-requests-tab">Previous Requests</div>
+    </div>
+    <main>
+        <div class="content active" id="apply-content">
+            <form id="od-request-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="od_date">Date</label>
+                    <input type="date" id="od_date" name="od_date" required>
+                </div>
+                <div class="form-group">
+                    <label for="reason">Reason</label>
+                    <textarea id="reason" name="reason" rows="5" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="proof_document">Proof Document</label>
+                    <input type="file" id="proof_document" name="proof_document" accept=".pdf,.jpg,.png" required>
+                </div>
+                <button type="submit">Submit Request</button>
+            </form>
+        </div>
+        <div class="content" id="previous-requests-content">
+            <div class="previous-requests">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previous-requests-tbody">
+                        <!-- Requests will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    <script>
+        document.getElementById('apply-tab').addEventListener('click', function() {
+            document.getElementById('apply-content').classList.add('active');
+            document.getElementById('previous-requests-content').classList.remove('active');
+            this.classList.add('active');
+            document.getElementById('previous-requests-tab').classList.remove('active');
+        });
+
+        document.getElementById('previous-requests-tab').addEventListener('click', function() {
+            document.getElementById('previous-requests-content').classList.add('active');
+            document.getElementById('apply-content').classList.remove('active');
+            this.classList.add('active');
+            document.getElementById('apply-tab').classList.remove('active');
+            fetchPreviousRequests();
+        });
+
+        document.getElementById('od-request-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = new FormData(this);
+
+            fetch('/submit-od-request', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    alert('OD request submitted successfully');
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error submitting OD request:', error);
+                alert('Error submitting OD request');
+            });
+        });
+function fetchPreviousRequests() {
+    fetch('/fetch-previous-od-requests')
+    .then(response => response.json())
+    .then(data => {
+        console.log('Data received from server:', data); // Debugging line
+        const tbody = document.getElementById('previous-requests-tbody');
+        tbody.innerHTML = '';
+        data.requests.forEach(request => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${request.od_date}</td>
+                <td>${request.reason}</td>
+                <td>${request.status}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching previous OD requests:', error);
+        alert('Error fetching previous OD requests');
+    });
+}
+    </script>
+</body>
+</html>

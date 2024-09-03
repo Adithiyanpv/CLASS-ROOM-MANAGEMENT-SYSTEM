@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+         body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .navbar {
+            width: 100%;
+            background-color: #008080; /* Teal color */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .navbar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .brand {
+            color: #ffffff;
+            font-size: 1.5em;
+            text-decoration: none;
+            padding: 14px 0;
+        }
+
+        .navbar-links a {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 14px 20px;
+            display: inline-block;
+        }
+
+        .navbar-links a:hover {
+            background-color: #004d40; /* Darker teal */
+        }
+
+        .main-container {
+            margin-top: 80px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .welcome-section h1 {
+            font-size: 2.5em;
+            color: #008080; /* Teal color */
+        }
+
+        .welcome-section p {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .cards {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .card {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            width: 250px;
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card i {
+            font-size: 2em;
+            color: #008080; /* Teal color */
+            margin-bottom: 10px;
+        }
+
+        .card h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            font-size: 1em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .card a {
+            color: #008080; /* Teal color */
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .card a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="#" class="brand">XYZ School</a>
+            <div class="navbar-links">
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+    </nav>
+    <main class="main-container">
+        <div class="welcome-section">
+            <h1 id="welcome-message">Welcome, Faculty</h1>
+            <p>Here you can manage attendance, upload grades, assign quizzes, and endorse OD.</p>
+        </div>
+        <div class="cards">
+            <div class="card">
+                <i class="fas fa-calendar-alt"></i>
+                <h2>Upload Attendance</h2>
+                <p>Manage and upload student attendance.</p>
+                <a href="/manage-attendance">Upload Now</a>
+            </div>
+            <div class="card">
+                <i class="fas fa-file-alt"></i>
+                <h2>Upload Grades</h2>
+                <p>Enter and update student grades.</p>
+                <a href="/upload_grades">Upload Now</a>
+            </div>
+            <div class="card">
+                <i class="fas fa-tasks"></i>
+                <h2>Assign Quizzes/Assignments</h2>
+                <p>Assign quizzes or assignments to students.</p>
+                <a href="#">Assign Now</a>
+            </div>
+            <div class="card">
+                <i class="fas fa-check-circle"></i>
+                <h2>Endorse OD</h2>
+                <p>Endorse official documents as needed.</p>
+                <a href="/faculty_od_requests">Endorse Now</a>
+            </div>
+        </div>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/get-username') // Fetch the username from the backend
+                .then(response => response.json())
+                .then(data => {
+                    if (data.name) {
+                        document.getElementById('welcome-message').textContent = `Welcome, ${data.name}`;
+                    } else {
+                        document.getElementById('welcome-message').textContent = 'Welcome, Faculty';
+                    }
+                })
+                .catch(error => console.error('Error fetching the username:', error));
+        });
+    </script>
+</body>
+</html>

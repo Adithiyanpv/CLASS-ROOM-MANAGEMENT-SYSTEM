@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Attendance</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .container {
+            margin: 20px auto;
+            max-width: 800px;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        h2 {
+            color: #008080;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 8px;
+        }
+
+        th {
+            background-color: #008080;
+            color: white;
+        }
+
+        .button-container {
+            text-align: center;
+        }
+
+        button {
+            background-color: #008080;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #006666;
+        }
+
+        .back-button {
+            margin-top: 10px;
+            display: block;
+        }
+
+        input[type="date"] {
+            margin: 10px 0;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .success-message {
+            display: none;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .success-message i {
+            color: #28a745;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Manage Attendance</h2>
+        <label for="attendance-date">Select Date:</label>
+        <input type="date" id="attendance-date" required>
+        <table>
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Attendance</th>
+                </tr>
+            </thead>
+            <tbody id="students-list">
+                <!-- Student rows will be dynamically inserted here -->
+            </tbody>
+        </table>
+        <div class="button-container">
+            <button onclick="submitAttendance()">Submit Attendance</button>
+        </div>
+        <button onclick="window.location.href='/faculty'" class="back-button">Back</button>
+        <div id="success-message" class="success-message">
+            <i class="fas fa-check-circle"></i> Attendance submitted successfully!
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/get-classes')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.classes.length > 0) {
+                        const className = data.classes[0].class_name; // Assuming only one class per faculty
+                        fetch(`/get-students?class_name=${className}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                const studentsList = document.getElementById('students-list');
+                                data.students.forEach(student => {
+                                    const row = document.createElement('tr');
+                                    row.innerHTML = `
+                                        <td>${student.student_name}</td>
+                                        <td>
+                                            <input type="checkbox" class="attendance-checkbox" data-username="${student.student_username}">
+                                        </td>
+                                    `;
+                                    studentsList.appendChild(row);
+                                });
+                            });
+                    }
+                });
+        });
+
+        function submitAttendance() {
+            const date = document.getElementById('attendance-date').value;
+            if (!date) {
+                alert('Please select a date.');
+                return;
+            }
+            const checkboxes = document.querySelectorAll('.attendance-checkbox');
+            const attendance = [];
+            checkboxes.forEach(checkbox => {
+                attendance.push({
+                    student_username: checkbox.getAttribute('data-username'),
+                    status: checkbox.checked ? 'present' : 'absent'
+                });
+            });
+
+            fetch('/record-attendance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams({
+                    date: date,
+                    attendance: JSON.stringify(attendance)
+                })
+            })
+            .then(response => response.text())
+            .then(data => {
+                const successMessage = document.getElementById('success-message');
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000); // Hide after 3 seconds
+            })
+            .catch(error => console.error('Error recording attendance:', error));
+        }
+    </script>
+</body>
+</html>

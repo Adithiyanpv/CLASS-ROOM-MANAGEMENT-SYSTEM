@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View OD Requests</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        header {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        main {
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .accept {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .reject {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>View OD Requests</h1>
+    </header>
+    <main>
+        <table id="od-requests-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Student</th>
+                    <th>Reason</th>
+                    <th>Proof Document</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- OD requests will be populated here -->
+            </tbody>
+        </table>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/fetch-od-requests')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('od-requests-table').querySelector('tbody');
+                    data.od_requests.forEach(request => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${request.od_date}</td>
+                            <td>${request.student_username}</td>
+                            <td>${request.reason}</td>
+                            <td><a href="${request.proof_document_url}" target="_blank">View Document</a></td>
+                            <td>${request.status}</td>
+                            <td class="actions">
+                                <button class="accept" data-id="${request.id}">Accept</button>
+                                <button class="reject" data-id="${request.id}">Reject</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    document.querySelectorAll('.accept').forEach(button => {
+                        button.addEventListener('click', () => {
+                            updateRequestStatus(button.dataset.id, 'accepted');
+                        });
+                    });
+
+                    document.querySelectorAll('.reject').forEach(button => {
+                        button.addEventListener('click', () => {
+                            updateRequestStatus(button.dataset.id, 'rejected');
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching OD requests:', error);
+                });
+        });
+
+        function updateRequestStatus(requestId, status) {
+            fetch(`/update-od-status`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: requestId, status: status })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    alert('OD request status updated successfully');
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error updating OD request status:', error);
+                alert('Error updating OD request status');
+            });
+        }
+    </script>
+</body>
+</html>
